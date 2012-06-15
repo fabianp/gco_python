@@ -18,6 +18,7 @@ cdef extern from "GCoptimization.h":
         void setDataCost(int *)
         void setSmoothCost(int *)
         void setNeighbors(int, int)
+        void setNeighbors(int, int, int)
         void expansion(int n_iterations)
         void swap(int n_iterations)
         int whatLabel(int node)
@@ -78,7 +79,9 @@ def cut_simple(np.ndarray[np.int32_t, ndim=3, mode='c'] data_cost,
 
 def cut_from_graph(np.ndarray[np.int32_t, ndim=2, mode='c'] edges,
         np.ndarray[np.int32_t, ndim=2, mode='c'] data_cost,
-        np.ndarray[np.int32_t, ndim=2, mode='c'] smoothness_cost, n_iter=5,
+        np.ndarray[np.int32_t, ndim=2, mode='c'] smoothness_cost,
+        np.ndarray[np.int32_t, ndim=1, mode='c'] weights =
+        np.empty(0, dtype=np.int32), n_iter=5,
         algorithm='expansion'):
     """
     Apply multi-label graphcuts to arbitrary graph given by `edges`.
@@ -93,6 +96,7 @@ def cut_from_graph(np.ndarray[np.int32_t, ndim=2, mode='c'] edges,
         Pairwise potentials for label compatibility.
         smoothness_cost[k, l] is the unweighted cost of assigning
         labels k and l to any neighboring sites.
+    weights: ndarray, int32, shape=(n_edges,), optional
     n_iter: int, (default=5)
         Number of iterations
     algorithm: string, `expansion` or `swap`, default=expansion
@@ -109,10 +113,15 @@ def cut_from_graph(np.ndarray[np.int32_t, ndim=2, mode='c'] edges,
         raise ValueError("smoothness_cost must be a square matrix.")
     cdef int n_vertices = data_cost.shape[0]
     cdef int n_labels = smoothness_cost.shape[0]
+    cdef int i
 
     cdef GCoptimizationGeneralGraph* gc = new GCoptimizationGeneralGraph(n_vertices, n_labels)
-    for e in edges:
-        gc.setNeighbors(e[0], e[1])
+    if weights.size:
+        for i in range(edges.shape[0]):
+            gc.setNeighbors(edges[i, 0], edges[i, 1], weights[i])
+    else:
+        for e in edges:
+            gc.setNeighbors(e[0], e[1])
     gc.setDataCost(<int*>data_cost.data)
     gc.setSmoothCost(<int*>smoothness_cost.data)
     if algorithm == 'swap':
