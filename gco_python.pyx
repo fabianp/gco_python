@@ -32,9 +32,12 @@ def cut_simple(np.ndarray[np.int32_t, ndim=3, mode='c'] data_cost,
     Parameters
     ----------
     data_cost: ndarray, int32, shape=(width, height, n_labels)
-        Unary potentials
+        Unary potentials. data_cost[x, y, k] is the cost of assigning
+        label k to site (x, y).
     smoothness_cost: ndarray, int32, shape=(n_labels, n_labels)
-        Pairwise potentials for label compatibility
+        Pairwise potentials for label compatibility.
+        smoothness_cost[k, l] is the unweighted cost of assigning
+        labels k and l to any neighboring sites.
     n_iter: int, (default=5)
         Number of iterations
     algorithm: string, `expansion` or `swap`, default=expansion
@@ -87,7 +90,9 @@ def cut_from_graph(np.ndarray[np.int32_t, ndim=2, mode='c'] edges,
     data_cost: ndarray, int32, shape=(n_vertices, n_labels)
         Unary potentials
     smoothness_cost: ndarray, int32, shape=(n_labels, n_labels)
-        Pairwise potentials for label compatibility
+        Pairwise potentials for label compatibility.
+        smoothness_cost[k, l] is the unweighted cost of assigning
+        labels k and l to any neighboring sites.
     n_iter: int, (default=5)
         Number of iterations
     algorithm: string, `expansion` or `swap`, default=expansion
